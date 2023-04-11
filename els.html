@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>俄罗斯方块</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body{
+            height: 1000px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .d1{
+            position: relative;
+            width: 280px;
+            height: 504px;
+            background-color:#A9A9A9;
+        }
+        .fs{
+            position: absolute;
+            height: 460px;
+            width: 150px;
+            bottom: 50px;
+            right: -110px;
+            text-align: center;
+        }
+        .again{
+            position: absolute;
+            height: 25px;
+            width: 75px;
+            top: 12px;
+            right: -75px;
+            text-align: center;
+        }
+        .again:hover{
+            color: white;
+            background-color: black;
+        }
+        .kuai{
+            position: absolute;
+            width: 28px;
+            height: 28px;
+        }
+        .d{
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background-color: rgb(243, 243, 243);
+        }
+    </style>
+</head>
+<body onload="start()">
+<div class="d1" id="d1">
+    <div class="fs">分数：0 </div>
+    <div class="again">重新开始</div>
+</div>
+<script>
+    var fs = document.querySelector(".fs");
+    var fss = 0;
+    var again = document.querySelector(".again");
+    var sp = 28;
+    var row = 18 , col = 10;
+    var box = {}
+    var kk = [
+        {
+            0:{row:2,col:0},
+            1:{row:2,col:1},
+            2:{row:2,col:2},
+            3:{row:1,col:2}
+        },
+        {
+            0: {row: 1, col: 1},
+            1: {row: 0, col: 0},
+            2: {row: 1, col: 0},
+            3: {row: 2, col: 0}
+        },
+        {
+            0: {row: 1, col: 1},
+            1: {row: 2, col: 1},
+            2: {row: 1, col: 2},
+            3: {row: 2, col: 2}
+        },
+        {
+            0: {row: 0, col: 0},
+            1: {row: 0, col: 1},
+            2: {row: 0, col: 2},
+            3: {row: 0, col: 3}
+        },
+        {
+            0: {row: 1, col: 1},
+            1: {row: 1, col: 2},
+            2: {row: 2, col: 2},
+            3: {row: 2, col: 3}
+        }
+
+    ]
+    var model = {}
+    var sumx = 0 , sumy = 0;
+    function create() {
+        if(isGameOver()){
+            over();
+            return;
+        }
+        model = kk[_.random(0,kk.length -1)];
+        sumx=0;
+        sumy=0;
+        let color = new Array("red","green","blue","yellow","orange");
+        let colors = color[Math.floor(Math.random() * color.length)];
+        for(var key in model){
+            var divKuai = document.createElement("div");
+            divKuai.className = "kuai";
+            divKuai.style.cssText = `box-shadow: inset 0 0 100px ${colors},
+                inset 0 0 10px ${colors},
+                inset 0 0 15px ${colors};
+                border: 1px solid ;`
+            document.getElementById("d1").appendChild(divKuai);
+        }
+        block();
+        down();
+    }
+
+    function block(){
+        check();
+        var blocks = document.getElementsByClassName("kuai");
+        for(var i=0;i<blocks.length;i++ ){
+            var oneBlock = blocks[i];
+            var locationKuai = model[i];
+            oneBlock.style.top = (locationKuai.row+sumy) * sp + "px";
+            oneBlock.style.left = (locationKuai.col+sumx) * sp + "px";
+        }
+    }
+    function start (){
+        dianji();
+        create();
+    }
+    function dianji(){
+        document.addEventListener('keydown',function(event){
+
+            switch(event.keyCode){
+                case 38: console.log("s");
+                    rotate();
+                    break;
+                case 39: console.log("y");
+                    move(1,0);
+                    break;
+                case 40: console.log("x");
+                    move(0,1);
+                    break;
+                case 37: console.log("z");
+                    move(-1,0);
+                    break;
+
+            }
+        })
+    }
+    function move(x,y){
+        if(mm(sumx + x , sumy + y , model)){
+            if(y!==0){
+                fix();
+            }
+            return;
+        }
+        sumx = sumx + x;
+        sumy = sumy + y;
+        block();
+    }
+
+    function rotate(){
+        var cloneCurrentModel = _.cloneDeep(model);
+        for(var key in cloneCurrentModel){
+            var blocksModel = cloneCurrentModel[key];
+            let temp = blocksModel.row;
+            blocksModel.row = blocksModel.col;
+            blocksModel.col = 3 - temp;
+        }
+        if(mm(sumx,sumy,cloneCurrentModel)){
+            return;
+        }
+        model = cloneCurrentModel;
+
+        block();
+    }
+
+    function check(){
+        var leftBound = 0,rightBound = col,bottomBound = row;
+        for(var key in model){
+            var blocksModel = model[key];
+            if((blocksModel.col+sumx)<leftBound)
+            {
+                sumx++;
+            }
+            if((blocksModel.col+sumx)>=rightBound){
+                sumx--;
+            }
+            if((blocksModel.row+sumy)>=bottomBound){
+                sumy--;
+                fix();
+            }
+
+        }
+    }
+
+    function fix(){
+        var activityModels = document.getElementsByClassName("kuai");
+        for(var i=activityModels.length-1;i>=0;i--){
+            var activityModel = activityModels[i];
+            activityModel.className = "d";
+            var blocksModel = model[i];
+            box[(sumy+blocksModel.row)+"_"+(sumx+blocksModel.col)]=activityModel;
+
+        }
+        remove();
+        create();
+    }
+
+    function mm(x,y,model){
+        for(var k in model) {
+            var blockModel = model[k];
+            if(box[(y+blockModel.row)+"_"+(x+blockModel.col)]){
+                return true;
+            }
+        }
+        return false;
+    }
+    function remove(){
+        for(var i=0;i<row;i++){
+            var flag = true;
+            for(var j=0;j<col;j++){
+                if(!box[i + "_" + j]){
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag){
+                removeLine(i);
+            }
+        }
+    }
+    function removeLine(line){
+        for(var i=0;i<col;i++){
+            document.getElementById("d1").removeChild(box[line+"_"+i]);
+            box[line+"_"+i] = null;
+        }
+        downLine(line);
+        fss++;
+        fs.innerHTML = "分数：" + fss ;
+
+    }
+    function downLine(line){
+        for(var i = line-1;i>=0;i--){
+            for(var j=0;j<col;j++){
+                if(!box[i+"_"+j]) continue;
+                box[(i+1)+"_"+j] = box[i+"_"+j];
+                box[(i+1)+"_"+j].style.top = (i+1)*sp+'px';
+                box[i+"_"+j] = null;
+            }
+        }
+    }
+    var mInterval = null;
+
+    function down(){
+        if(mInterval){
+            clearInterval(mInterval);
+        }
+        mInterval = setInterval(function(){
+            move(0,1);
+        },500)
+    }
+
+    function isGameOver(){
+        for(var i=0;i<col;i++){
+            if(box["0_" + i]){
+                return true;
+            }
+        }
+        return false;
+    }
+    function over(){
+        if(mInterval){
+            clearInterval(mInterval);
+        }
+        alert("分数为："+fss);
+    }
+    again.addEventListener('click',function(){
+        location.reload(true);
+    })
+</script>
+</body>
+</html>

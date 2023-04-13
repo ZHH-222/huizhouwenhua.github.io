@@ -62,11 +62,11 @@
 </div>
 <script>
     var fs = document.querySelector(".fs");
-    var fss = 0;
+    var totalfs = 0;
     var again = document.querySelector(".again");
-    var sp = 28;
+    var sp = 28;//方块移动一次的距离
     var row = 18 , col = 10;
-    var box = {}
+    var box = {}//记录所有方块位置
     var kk = [
         {
             0:{row:2,col:0},
@@ -102,7 +102,7 @@
     ]
     var model = {}
     var sumx = 0 , sumy = 0;
-    function create() {
+    function create() {//游戏开始先设置游戏结束条件然后开始创造方块
         if(isGameOver()){
             over();
             return;
@@ -125,7 +125,7 @@
         down();
     }
 
-    function block(){
+    function block(){//利用坐标生成对应方块
         check();
         var blocks = document.getElementsByClassName("kuai");
         for(var i=0;i<blocks.length;i++ ){
@@ -139,7 +139,7 @@
         dianji();
         create();
     }
-    function dianji(){
+    function dianji(){//移动
         document.addEventListener('keydown',function(event){
 
             switch(event.keyCode){
@@ -159,7 +159,7 @@
             }
         })
     }
-    function move(x,y){
+    function move(x,y){//移动方块 判断是否能移动
         if(mm(sumx + x , sumy + y , model)){
             if(y!==0){
                 fix();
@@ -171,7 +171,7 @@
         block();
     }
 
-    function rotate(){
+    function rotate(){//移动翻转
         var cloneCurrentModel = _.cloneDeep(model);
         for(var key in cloneCurrentModel){
             var blocksModel = cloneCurrentModel[key];
@@ -187,18 +187,18 @@
         block();
     }
 
-    function check(){
-        var leftBound = 0,rightBound = col,bottomBound = row;
+    function check(){//方块活动效果
+        var left = 0,right = col,bottom = row;
         for(var key in model){
             var blocksModel = model[key];
-            if((blocksModel.col+sumx)<leftBound)
+            if((blocksModel.col+sumx)<left)
             {
                 sumx++;
             }
-            if((blocksModel.col+sumx)>=rightBound){
+            if((blocksModel.col+sumx)>=right){
                 sumx--;
             }
-            if((blocksModel.row+sumy)>=bottomBound){
+            if((blocksModel.row+sumy)>=bottom){
                 sumy--;
                 fix();
             }
@@ -206,7 +206,7 @@
         }
     }
 
-    function fix(){
+    function fix(){//方块到达底部后固定
         var activityModels = document.getElementsByClassName("kuai");
         for(var i=activityModels.length-1;i>=0;i--){
             var activityModel = activityModels[i];
@@ -228,7 +228,7 @@
         }
         return false;
     }
-    function remove(){
+    function remove(){//判断一行能否得分
         for(var i=0;i<row;i++){
             var flag = true;
             for(var j=0;j<col;j++){
@@ -242,17 +242,17 @@
             }
         }
     }
-    function removeLine(line){
+    function removeLine(line){//清除一行
         for(var i=0;i<col;i++){
             document.getElementById("d1").removeChild(box[line+"_"+i]);
             box[line+"_"+i] = null;
         }
         downLine(line);
-        fss++;
-        fs.innerHTML = "分数：" + fss ;
+        totalfs++;
+        fs.innerHTML = "分数：" + totalfs ;
 
     }
-    function downLine(line){
+    function downLine(line){//让上面方块集体下落
         for(var i = line-1;i>=0;i--){
             for(var j=0;j<col;j++){
                 if(!box[i+"_"+j]) continue;
@@ -264,7 +264,7 @@
     }
     var mInterval = null;
 
-    function down(){
+    function down(){//用接口 自动向下移
         if(mInterval){
             clearInterval(mInterval);
         }
@@ -285,7 +285,7 @@
         if(mInterval){
             clearInterval(mInterval);
         }
-        alert("分数为："+fss);
+        alert("分数为："+totalfs);
     }
     again.addEventListener('click',function(){
         location.reload(true);
